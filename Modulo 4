@@ -1,0 +1,45 @@
+1) Rentabilidad por categoría:
+select c.nombre_categoria, SUM(v.cantidad) AS unidades_vendidas, SUM(v.cantidad * v.precio_unitario) as ingreso_total
+FROM categorias AS c
+INNER JOIN productos AS p
+ON c.id = p.id_categoria
+INNER JOIN ventas  AS v
+ON v.id_producto = p.id
+GROUP BY c.nombre_categoria
+HAVING SUM (v.cantidad * v.precio_unitario) > 5000;
+
+--Comentario: Nos permite identificar las categorías que generan mayores ingresos y volumen de ventas, ayudando a orientar los esfuerzos comerciales y de inversión en los productos más rentables. 
+
+2) Clientes sin compras:
+SELECT c.nombre,
+COALESCE(v.id_cliente, 0) AS cantidad_compras
+FROM clientes AS c
+LEFT JOIN ventas AS v
+ON v.id_cliente= c.id
+where v.id is null;
+
+--Comentario: Nos permite identificar los clientes registrados que no han realizado compras y saber a qué clientes podemos mandar incentivos orientados a concretar su primera compra. 
+
+3) Top de compras por cliente:
+select
+sub.nombre_cliente,
+   sub.producto,
+   sub.veces_comprado,
+   sub.ultima_transaccion
+FROM (
+   SELECT
+       c.id AS id_cliente,
+       c.nombre AS nombre_cliente,
+       p.nombre_producto AS producto,
+       COUNT(v.id_producto) AS veces_comprado,
+       MAX(v.fecha_venta) AS ultima_transaccion
+   FROM ventas AS v
+   INNER JOIN clientes AS c ON c.id = v.id_cliente
+   INNER JOIN productos AS p ON v.id_producto = p.id
+   GROUP BY c.id, c.nombre, p.nombre_producto
+) AS sub
+ORDER BY sub.nombre_cliente, sub.veces_comprado DESC;
+
+--Comentario: Permite conocer los habitos de consumo de cada cliente y es informacion util para la empresa ya que puede segmentar preferencias y diseñar estrategias de fidelización o campañas comerciales personalizadas.
+
+
